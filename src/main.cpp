@@ -140,19 +140,21 @@ private:
     }
 };
 
+Camera player_camera(glm::vec3(0.0f, 0.0f, 4.0f));
+
 double last_mouse_x = 400.0f;
 double last_mouse_y = 400.0f;
 bool first_mouse = true;
-void process_input(GLFWwindow* window, Camera& camera) {
+void process_input(GLFWwindow* window) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
 
     //camera movement
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.move(camera.Front, 0.001f);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.move(-camera.Front, 0.001f);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.move(-camera.Right, 0.001f);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.move(camera.Right, 0.001f);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) player_camera.move( player_camera.Front, 0.25f);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) player_camera.move(-player_camera.Front, 0.25f);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) player_camera.move(-player_camera.Right, 0.25f);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) player_camera.move( player_camera.Right, 0.25f);
 
     //camera rotation
     double mouse_x, mouse_y;
@@ -171,8 +173,9 @@ void process_input(GLFWwindow* window, Camera& camera) {
     last_mouse_x = mouse_x;
     last_mouse_y = mouse_y;
 
-    camera.rotate(x_offset * camera.sensitivity, y_offset * camera.sensitivity);
+    player_camera.rotate(x_offset * player_camera.sensitivity, y_offset * player_camera.sensitivity);
 }
+
 
 int main() {
     glfwInit();
@@ -188,6 +191,8 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
+
+    glfwSwapInterval(1);//vsync
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to init GLAD" << std::endl;
@@ -294,12 +299,11 @@ int main() {
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    Camera player_camera(glm::vec3(0.0f, 0.0f, 4.0f));
 
     while(!glfwWindowShouldClose(window)) {
         
         //input
-        process_input(window, player_camera);
+        process_input(window);
 
         //rendering commands
         glClearColor(0.00f, 0.60f, 0.70f, 1.0f);
