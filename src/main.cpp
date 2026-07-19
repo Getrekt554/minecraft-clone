@@ -10,16 +10,51 @@
 #define PI 3.14159265359
 
 float vertices[] = {
-    // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,   // top right
-     0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,   // bottom right
-    -0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f    // top left 
+    // Positions          // Colors           // Texture Coords
+    // Back Face
+    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+
+    // Front Face
+    -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+
+    // Left Face
+    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
+    // Right Face
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+
+    // Bottom Face
+    -0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+
+    // Top Face
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 1.0f,   0.0f, 0.0f
 };
 
 unsigned int indices[] = {
-    0, 1, 2,
-    0,2,3
+    0,  1,  2,  0,  2,  3,   // Back
+    4,  5,  6,  4,  6,  7,   // Front
+    8,  9,  10, 8,  10, 11,  // Left
+    12, 13, 14, 12, 14, 15,  // Right
+    16, 17, 18, 16, 18, 19,  // Bottom
+    20, 21, 22, 20, 22, 23   // Top
 };
 
 const char *vertexShaderSource = "#version 330 core\n"
@@ -28,9 +63,12 @@ const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 2) in vec2 aTexCoord;\n"
     "out vec3 ourColor;\n"
     "out vec2 TexCoord;\n"
+    "uniform mat4 model;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
     "   ourColor = aColor;\n"
     "   TexCoord = aTexCoord;\n"
     "}\0";
@@ -49,10 +87,91 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void process_input(GLFWwindow* window) {
+class Camera {
+public:
+    glm::vec3 Position;
+    glm::vec3 Front;
+    glm::vec3 Up;
+    glm::vec3 Right;
+    glm::vec3 WorldUp;
+    
+    float sensitivity = 0.1f;
+
+    float Yaw;
+    float Pitch;
+
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -90.0f, float pitch = 0.0f) {
+        Position = position;
+        WorldUp = up;
+        Yaw = yaw;
+        Pitch = pitch;
+        Front = glm::vec3(0.0f, 0.0f, -1.0f);
+        update();
+    }
+
+    glm::mat4 get_view_matrix() const {
+        return glm::lookAt(Position, Position + Front, Up);
+    }
+
+    void move(glm::vec3 direction, float distance) {
+        Position += direction * distance;
+    }
+
+    void rotate(float xoffset, float yoffset) {
+        Yaw   += xoffset;
+        Pitch += yoffset;
+
+        if (Pitch > 89.0f)  Pitch = 89.0f;
+        if (Pitch < -89.0f) Pitch = -89.0f;
+
+        update();
+    }
+
+private:
+    void update() {
+        glm::vec3 front;
+        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front.y = sin(glm::radians(Pitch));
+        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        Front = glm::normalize(front);
+        
+        Right = glm::normalize(glm::cross(Front, WorldUp));  
+        Up    = glm::normalize(glm::cross(Right, Front));
+    }
+};
+
+double last_mouse_x = 400.0f;
+double last_mouse_y = 400.0f;
+bool first_mouse = true;
+void process_input(GLFWwindow* window, Camera& camera) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+
+    //camera movement
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.move(camera.Front, 0.001f);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.move(-camera.Front, 0.001f);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.move(-camera.Right, 0.001f);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.move(camera.Right, 0.001f);
+
+    //camera rotation
+    double mouse_x, mouse_y;
+    glfwGetCursorPos(window, &mouse_x, &mouse_y);
+
+    //first mouse sets the mouse_pos at startup
+    if (first_mouse) {
+        last_mouse_x = mouse_x;
+        last_mouse_y = mouse_y;
+        first_mouse = false;
+    }
+
+    float x_offset = (float)(mouse_x - last_mouse_x);
+    float y_offset = (float)(last_mouse_y - mouse_y);
+
+    last_mouse_x = mouse_x;
+    last_mouse_y = mouse_y;
+
+    camera.rotate(x_offset * camera.sensitivity, y_offset * camera.sensitivity);
 }
 
 int main() {
@@ -62,6 +181,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(800, 800, "CloneCraft", NULL, NULL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (window == NULL) {
         std::cout << "Failed to create window\n";
@@ -78,6 +198,7 @@ int main() {
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    glEnable(GL_DEPTH_TEST);
 
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -171,22 +292,40 @@ int main() {
     glDeleteShader(vertex_shader);
     glDeleteShader(frag_shader);
 
-    
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    Camera player_camera(glm::vec3(0.0f, 0.0f, 4.0f));
 
     while(!glfwWindowShouldClose(window)) {
         
         //input
-        process_input(window);
+        process_input(window, player_camera);
 
         //rendering commands
         glClearColor(0.00f, 0.60f, 0.70f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shader_program);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(30.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+        glm::mat4 view = player_camera.get_view_matrix();
+        
+        //camera configurations
+        glm::mat4 projection = glm::perspective(glm::radians(90.0f), 800.0f / 800.0f, 0.1f, 100.0f);
+        
+        unsigned int modelLoc = glGetUniformLocation(shader_program, "model");
+        unsigned int viewLoc  = glGetUniformLocation(shader_program, "view");
+        unsigned int projLoc  = glGetUniformLocation(shader_program, "projection");
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         //check events and swap buffers
         glfwSwapBuffers(window);
