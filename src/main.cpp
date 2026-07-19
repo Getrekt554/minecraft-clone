@@ -1,39 +1,48 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "../external/glm/glm.hpp"
+#include "../external/glm/gtc/matrix_transform.hpp"
+#include "../external/glm/gtc/type_ptr.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "../external/stb_image.h"
 #include <iostream>
 
+#define PI 3.14159265359
+
 float vertices[] = {
-    0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right
-    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
-    0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // top
+    // positions          // colors           // texture coords
+     0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,   // top right
+     0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f    // top left 
 };
 
 unsigned int indices[] = {
     0, 1, 2,
-};
-
-float tex_coords[] = {
-    0.0f, 0.0f, //lower-left corner
-    1.0f, 0.0f, //lower-right corner
-    0.5f, 1.0f, //top_center corner
+    0,2,3
 };
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "layout (location = 1) in vec3 aColor;\n"
+    "layout (location = 2) in vec2 aTexCoord;\n"
     "out vec3 ourColor;\n"
+    "out vec2 TexCoord;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "   ourColor = aColor;\n"
+    "   TexCoord = aTexCoord;\n"
     "}\0";
 
 const char *fragShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
-    "in vec3 ourColor;"
+    "in vec3 ourColor;\n"
+    "in vec2 TexCoord;\n"
+    "uniform sampler2D ourTexture;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(ourColor, 1.0f);\n"
+    "   FragColor = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0);\n"
     "}\0";
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -83,11 +92,14 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     //position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (6 * sizeof(float)), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (8 * sizeof(float)), (void*)0);
     glEnableVertexAttribArray(0);
     //color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (6 * sizeof(float)), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (8 * sizeof(float)), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    //UV attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (8 * sizeof(float)), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     unsigned int EBO;
     glGenBuffers(1, &EBO);
@@ -95,6 +107,27 @@ int main() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+    unsigned int texture;
+    {
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        int width, height, nrChannels;
+        unsigned char* data = stbi_load("../textures/blocks/grass.png", &width, &height, &nrChannels, 0);
+
+
+        if (!data) {
+            std::cerr << "check filepath retep\n";
+            stbi_image_free(data);
+            exit(-1);
+        }
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(data);
+    }
 
     //shader
     unsigned int vertex_shader;
@@ -138,12 +171,11 @@ int main() {
     glDeleteShader(vertex_shader);
     glDeleteShader(frag_shader);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     while(!glfwWindowShouldClose(window)) {
+        
         //input
         process_input(window);
 
@@ -151,14 +183,22 @@ int main() {
         glClearColor(0.00f, 0.60f, 0.70f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shader_program);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         //check events and swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+    vec = trans * vec;
+
+    std::cout << vec.x << vec.y << vec.z << std::endl;
 
     glfwTerminate();
     return 0;
