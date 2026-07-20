@@ -15,20 +15,20 @@ Camera player_camera(glm::vec3(0.0f, 0.0f, 4.0f));
 double last_mouse_x = 400.0f;
 double last_mouse_y = 400.0f;
 bool first_mouse = true;
-void process_input(GLFWwindow *window) {
+void process_input(GLFWwindow *window, float delta_time) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
 
   // camera movement
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    player_camera.move(player_camera.Front, 0.25f);
+    player_camera.move(player_camera.Front, player_camera.speed * delta_time);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    player_camera.move(-player_camera.Front, 0.25f);
+    player_camera.move(-player_camera.Front, player_camera.speed * delta_time);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    player_camera.move(-player_camera.Right, 0.25f);
+    player_camera.move(-player_camera.Right, player_camera.speed * delta_time);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    player_camera.move(player_camera.Right, 0.25f);
+    player_camera.move(player_camera.Right, player_camera.speed * delta_time);
 
   // camera rotation
   double mouse_x, mouse_y;
@@ -47,8 +47,8 @@ void process_input(GLFWwindow *window) {
   last_mouse_x = mouse_x;
   last_mouse_y = mouse_y;
 
-  player_camera.rotate(x_offset * player_camera.sensitivity,
-                       y_offset * player_camera.sensitivity);
+  player_camera.rotate(x_offset * player_camera.sensitivity * delta_time,
+                       y_offset * player_camera.sensitivity * delta_time);
 }
 
 int main() {
@@ -84,12 +84,19 @@ int main() {
   renderer.init();
   player_camera.model = glm::mat4(1.0f);
 
+  float delta_time = 0.0f;
+  float last_frame = 0.0f;
+
   while (!glfwWindowShouldClose(window)) {
+    //calculate delta time
+    float current_frame = (float)glfwGetTime();
+    delta_time = current_frame - last_frame;
+    last_frame = current_frame;
 
     // input
-    process_input(window);
+    process_input(window, delta_time);
 
-    player_camera.model = glm::rotate(player_camera.model, glm::radians(1.0f),
+    player_camera.model = glm::rotate(player_camera.model, glm::radians(15.0f) * delta_time,
                                       glm::vec3(0.5f, 1.0f, 0.0f));
     renderer.tick(player_camera);
 
