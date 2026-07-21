@@ -10,7 +10,7 @@ target_include_directories(glad PUBLIC external/glad/include)
 
 find_package(OpenGL REQUIRED)
 
-add_executable(main src/main.cpp src/camera.cpp src/renderer.cpp)
+add_executable(main src/main.cpp src/camera.cpp src/renderer.cpp src/world.cpp src/utilities.cpp)
 
 target_link_libraries(main PRIVATE glfw glad OpenGL::GL)
 
