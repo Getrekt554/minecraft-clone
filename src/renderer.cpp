@@ -1,48 +1,9 @@
 #include "renderer.hpp"
+#include "camera.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "../external/stb_image.h"
 #include <vector>
 
-std::vector<float> vertices = {
-    // Positions          // Colors           // Texture Coords
-    // Back Face
-    -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f, -0.5f, 1.0f,
-    1.0f, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-
-    // Front Face
-    -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.5f, 1.0f,
-    1.0f, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-
-    // Left Face
-    -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -0.5f, 0.5f, -0.5f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-
-    // Right Face
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f, -0.5f, 1.0f,
-    1.0f, 1.0f, 0.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-
-    // Bottom Face
-    -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f,
-    1.0f, 1.0f, 1.0f, 1.0f, 0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-
-    // Top Face
-    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.5f, -0.5f, 1.0f,
-    1.0f, 1.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f};
-
-std::vector<unsigned int> indices = {
-    0,  1,  2,  0,  2,  3,  // Back
-    4,  5,  6,  4,  6,  7,  // Front
-    8,  9,  10, 8,  10, 11, // Left
-    12, 13, 14, 12, 14, 15, // Right
-    16, 17, 18, 16, 18, 19, // Bottom
-    20, 21, 22, 20, 22, 23  // Top
-};
 const char *vertexShaderSource =
     "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -81,7 +42,7 @@ void Renderer::init() {
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-               vertices.data(), GL_STATIC_DRAW);
+               vertices.data(), GL_DYNAMIC_DRAW);
 
   // position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (8 * sizeof(float)),
@@ -100,7 +61,7 @@ void Renderer::init() {
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-               indices.data(), GL_STATIC_DRAW);
+               indices.data(), GL_DYNAMIC_DRAW);
 
   {
     glGenTextures(1, &texture);
@@ -109,8 +70,8 @@ void Renderer::init() {
                     GL_NEAREST_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("../textures/blocks/grass.png", &width,
-                                    &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("../textures/blocks/atlas.png", &width,
+                                    &height, &nrChannels, STBI_rgb_alpha);
 
     if (!data) {
       std::cerr << "check filepath retep\n";
@@ -118,7 +79,9 @@ void Renderer::init() {
       exit(-1);
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -178,5 +141,27 @@ void Renderer::draw() {
   glBindTexture(GL_TEXTURE_2D, texture);
   glBindVertexArray(VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+}
+
+void Renderer::update_buffers() {
+  glBindVertexArray(VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), nullptr,
+               GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
+               vertices.data(), GL_DYNAMIC_DRAW);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
+               nullptr, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
+               indices.data(), GL_DYNAMIC_DRAW);
+
+  glBindVertexArray(0);
+}
+
+glm::vec2 get_texture_offset(unsigned int texture) {
+  return glm::vec2(texture % ATLAS_SIZE, texture - (texture % ATLAS_SIZE));
 }
