@@ -1,10 +1,15 @@
 #include "block_handler.hpp"
 #include "renderer.hpp"
+#include "utilities.hpp"
+#include <sys/types.h>
 
 void add_block(glm::vec3 pos, std::vector<float> &vertices,
-               std::vector<unsigned int> &indices, unsigned int texture) {
+               std::vector<unsigned int> &indices, u_int8_t texture) {
+  if (texture == u_int8_t(BLOCK::AIR)) {
+    return;
+  }
 
-  glm::vec2 uv_offset = get_texture_offset(texture);
+  glm::vec2 uv_offset = get_texture_offset(texture - 1);
 
   std::vector<unsigned int> cube_indices = {
       1,  0,  2,  2,  0,  3,  // Back
@@ -56,11 +61,11 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
     index += vertices.size() / 8;
   }
 
-  for (int i = 6; i < cube_vertices.size(); i += 7) {
-    cube_vertices.at(i) /= ATLAS_SIZE;
-    cube_vertices.at(i++) += uv_offset.x;
-    cube_vertices.at(i) /= ATLAS_SIZE;
-    cube_vertices.at(i) += uv_offset.y;
+  for (int i = 6; i < cube_vertices.size(); i += 6) {
+    cube_vertices[i] += uv_offset.x;
+    cube_vertices[i++] /= ATLAS_SIZE;
+    cube_vertices[i] += uv_offset.y;
+    cube_vertices[i++] /= ATLAS_SIZE;
   }
 
   vertices.insert(vertices.end(), cube_vertices.begin(), cube_vertices.end());

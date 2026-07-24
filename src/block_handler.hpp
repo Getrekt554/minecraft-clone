@@ -7,4 +7,4 @@
 #include "renderer.hpp"
 
 void add_block(glm::vec3 pos, std::vector<float> &vertices,
-               std::vector<unsigned int> &indices, unsigned int texture);
+               std::vector<unsigned int> &indices, u_int8_t texture);

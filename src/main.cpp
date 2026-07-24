@@ -1,5 +1,8 @@
 #include <iostream>
+#include "camera.hpp"
 #include "renderer.hpp"
+#include "utilities.hpp"
+#include "world.hpp"
 
 #define PI 3.14159265359
 
@@ -78,17 +81,33 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   Renderer renderer;
+  WorldManager world_manager;
+  std::array<BLOCK, 4096> blocks;
+  blocks.fill(BLOCK::STONE);
+  blocks.at(0) = BLOCK::GRASS;
+  world_manager.add_chunk(0, blocks);
+
+  world_manager.set_block_from_position(0, 0, 0, BLOCK::STONE);
 
   renderer.init();
+
+  ObjData world_mesh =
+      chunk_data(*world_manager.get_chunk_from_position(0, 0, 0));
+
+  renderer.vertices = world_mesh.vertices;
+  renderer.indices = world_mesh.indices;
+  renderer.update_buffers();
+
   player_camera.model = glm::mat4(1.0f);
 
   float delta_time = 0.0f;
   float last_frame = 0.0f;
 
   while (!glfwWindowShouldClose(window)) {
-    //calculate delta time
+    // calculate delta time
     float current_frame = (float)glfwGetTime();
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
@@ -96,8 +115,6 @@ int main() {
     // input
     process_input(window, delta_time);
 
-    player_camera.model = glm::rotate(player_camera.model, glm::radians(15.0f) * delta_time,
-                                      glm::vec3(0.5f, 1.0f, 0.0f));
     renderer.tick(player_camera);
 
     renderer.draw();
@@ -106,6 +123,8 @@ int main() {
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
+  world_manager.free_chunk(0);
 
   glfwTerminate();
   return 0;
