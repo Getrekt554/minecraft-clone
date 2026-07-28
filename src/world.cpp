@@ -76,7 +76,7 @@ BLOCK WorldManager::get_block_from_position(int32_t x, int32_t y, int32_t z) {
   chunk *target_chunk = get_chunk_from_position(x, y, z);
 
   if (target_chunk == nullptr) {
-    std::cerr << "Tried to access unloaded block\n";
+    std::cerr << "Tried to access unloaded chunk\n";
     exit(-1);
   }
 
@@ -107,22 +107,27 @@ void WorldManager::set_block_from_position(int32_t x, int32_t y, int32_t z, BLOC
 }
 
 void WorldManager::generate_chunks_at_position(Vector3i position, ObjData& mesh_data) {
-  //right now its on 1 y-level on the xz plane
   uint16_t gen_length = (uint16_t)(2 * render_distance + 1);
 
-  std::array<BLOCK, 4096> blocks;
-  blocks.fill(BLOCK::STONE);
+  std::array<BLOCK, 4096> ground_blocks;
+  ground_blocks.fill(BLOCK::STONE);
+  std::array<BLOCK, 4096> air_blocks;
+  air_blocks.fill(BLOCK::AIR);
 
   for (uint16_t z = 0; z < gen_length; z++) {
     int32_t z_position = ((position.z >> 4) - render_distance) * 16 + (z * 16);
-    for (uint16_t x = 0; x < gen_length; x++) {
-      int32_t x_position = ((position.x >> 4) - render_distance) * 16 + (x * 16);
+    for (uint16_t y = 0; y < gen_length; y++) {
+      int32_t y_position = ((position.y >> 4) - render_distance) * 16 + (y * 16);
+      for (uint16_t x = 0; x < gen_length; x++) {
+        int32_t x_position = ((position.x >> 4) - render_distance) * 16 + (x * 16);
 
-      uint64_t packed_position = pack_position(x_position, 0, z_position);
+        uint64_t packed_position = pack_position(x_position, y_position, z_position);
 
-      add_chunk(packed_position, blocks);
-      chunk_data(*current_chunks.at(packed_position), mesh_data);
+        if (y == 0) add_chunk(packed_position, ground_blocks);
+        else add_chunk(packed_position, air_blocks);
+        chunk_data(*current_chunks.at(packed_position), mesh_data);
 
+      }
     }
   }
 }

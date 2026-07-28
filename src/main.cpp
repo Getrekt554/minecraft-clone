@@ -13,7 +13,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-Camera player_camera(glm::vec3(0.0f, 0.0f, 0.0f));
+Camera player_camera(glm::vec3(0.0f, 30.0f, 0.0f));
 
 double last_mouse_x = 400.0f;
 double last_mouse_y = 400.0f;
