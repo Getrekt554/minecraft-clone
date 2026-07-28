@@ -31,5 +31,5 @@ bool block_face_covered(WorldManager *world, Vector3i position,
 // POSITION TO BLOCK POSITION IS WRONG
 raycast_data cast_ray(WorldManager *world, Vector3 position, Vector3 direction);
 
-ObjData chunk_data(chunk target_chunk);
-void append_chunk_data(ObjData& mesh, ObjData chunk_data);
+void chunk_data(chunk target_chunk, ObjData& output);
+void append_chunk_data(ObjData& mesh, ObjData data);

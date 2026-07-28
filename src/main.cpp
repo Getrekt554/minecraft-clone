@@ -92,10 +92,10 @@ int main() {
 
   renderer.init();
 
-  ObjData world_mesh =
-      chunk_data(*world_manager.current_chunks.at(pack_position(0,-16,0)));
+  ObjData world_mesh;
 
-  append_chunk_data(world_mesh, chunk_data(*world_manager.current_chunks.at(pack_position(0, 0, 0))));   
+  chunk_data(*world_manager.current_chunks.at(pack_position(0,-16,0)), world_mesh);
+  chunk_data(*world_manager.current_chunks.at(pack_position(0,0,0)), world_mesh);
 
   renderer.vertices = world_mesh.vertices;
   renderer.indices = world_mesh.indices;

@@ -130,28 +130,18 @@ raycast_data cast_ray(WorldManager *world, Vector3 position,
   return {false, {0, 0, 0}, DIRECTIONS::UNDEFINED};
 }
 
-ObjData chunk_data(chunk target_chunk) {
+void chunk_data(chunk target_chunk, ObjData& output) {
   Vector3i block_pos;
 
   unpack_position(target_chunk.pos, block_pos.x, block_pos.y, block_pos.z);
-
-  ObjData final;
 
   for (int x = 0; x < 16; x++) {
     for (int y = 0; y < 16; y++) {
       for (int z = 0; z < 16; z++) {
         add_block(glm::vec3(block_pos.x + x, block_pos.y + y, block_pos.z + z),
-                  final.vertices, final.indices,
+                  output.vertices, output.indices,
                   (uint8_t)target_chunk.blocks[(y << 8) | (z << 4) | x]);
       }
     }
   }
-
-  return final;
-}
-
-void append_chunk_data(ObjData& mesh, ObjData chunk_data) {
-  mesh.vertices.insert(mesh.vertices.end(), chunk_data.vertices.begin(), chunk_data.vertices.end());
-
-  mesh.indices.insert(mesh.indices.end(), chunk_data.indices.begin(), chunk_data.indices.end());
 }
