@@ -67,13 +67,10 @@ void Renderer::init() {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    GLfloat maxAnisotropy = 0.0f;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, maxAnisotropy);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, 4); 
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_NEAREST_MIPMAP_NEAREST);
+                    GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     int width, height, nrChannels;
     unsigned char *data = stbi_load("../textures/blocks/atlas.png", &width,
@@ -169,5 +166,5 @@ void Renderer::update_buffers() {
 }
 
 glm::vec2 get_texture_offset(unsigned int texture) {
-  return glm::vec2(texture & 0x0F, texture >> 4);
+  return glm::vec2((texture & 0x0F), (texture >> 4));
 }

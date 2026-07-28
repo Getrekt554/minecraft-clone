@@ -1,11 +1,11 @@
 #include "block_handler.hpp"
 #include "renderer.hpp"
 #include "utilities.hpp"
-#include <sys/types.h>
+#include <cstdint>
 
 void add_block(glm::vec3 pos, std::vector<float> &vertices,
-               std::vector<unsigned int> &indices, u_int8_t texture) {
-  if (texture == u_int8_t(BLOCK::AIR)) {
+               std::vector<unsigned int> &indices, uint8_t texture) {
+  if (texture == uint8_t(BLOCK::AIR)) {
     return;
   }
 

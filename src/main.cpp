@@ -88,14 +88,12 @@ int main() {
   std::array<BLOCK, 4096> blocks;
   blocks.fill(BLOCK::STONE);
   blocks.at(0) = BLOCK::GRASS;
-  world_manager.add_chunk(0, blocks);
-
-  world_manager.set_block_from_position(0, 0, 0, BLOCK::STONE);
+  world_manager.add_chunk(pack_position(0, 1, 0), blocks);
 
   renderer.init();
 
   ObjData world_mesh =
-      chunk_data(*world_manager.get_chunk_from_position(0, 0, 0));
+      chunk_data(*world_manager.current_chunks.at(pack_position(0,1,0)));
 
   renderer.vertices = world_mesh.vertices;
   renderer.indices = world_mesh.indices;

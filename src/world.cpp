@@ -19,7 +19,7 @@ void WorldManager::add_chunk(int64_t position, std::array<BLOCK, 4096> blocks) {
   new_chunk->pos = position;
 
   new_chunk->blocks = blocks;
-
+  
   current_chunks.insert_or_assign(new_chunk->pos, new_chunk);
 }
 
@@ -43,9 +43,9 @@ void unpack_position(int64_t packed, int32_t &x, int32_t &y, int32_t &z) {
   z = (raw_z & 0x4000000) ? (int32_t)(raw_z | ~XZ_MASK) : (int32_t)(raw_z);
 }
 
-Vector3i chunk_relative_pos_to_absolute(int64_t chunk_pos, int32_t x, int32_t y,
-                                        int32_t z) {
+Vector3i chunk_relative_pos_to_absolute(int64_t chunk_pos, int32_t x, int32_t y, int32_t z) {
   Vector3i final;
+  
   unpack_position(chunk_pos, final.x, final.y, final.z);
   final.x += x;
   final.y += y;
