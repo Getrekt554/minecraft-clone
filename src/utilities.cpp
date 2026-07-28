@@ -35,8 +35,8 @@ bool operator==(const Vector3 &a, const Vector3i &b) {
 };
 
 
-Vector3i face_to_offset(DIRECTIONS face) {
-  static constexpr Vector3i FACE_OFFSETS[]{
+glm::vec3 face_to_offset(DIRECTIONS face) {
+  static constexpr glm::vec3 FACE_OFFSETS[]{
       {0, 0, -1}, // NORTH
       {0, 0, 1},  // SOUTH
       {1, 0, 0},  // EAST
@@ -75,9 +75,9 @@ Vector3 normalize(Vector3 vector) {
   return {0.0f, 0.0f, 0.0f};
 }
 
-bool block_face_covered(WorldManager *world, Vector3i position,
+bool block_face_covered(WorldManager *world, glm::vec3 position,
                         DIRECTIONS face) {
-  Vector3i offset = face_to_offset(face);
+  glm::vec3 offset = face_to_offset(face);
   BLOCK target_block = world->get_block_from_position(
       position.x + offset.x, position.y + offset.y, position.z + offset.z);
   return target_block != BLOCK::AIR;
@@ -130,7 +130,7 @@ raycast_data cast_ray(WorldManager *world, Vector3 position,
   return {false, {0, 0, 0}, DIRECTIONS::UNDEFINED};
 }
 
-void chunk_data(chunk target_chunk, ObjData& output) {
+void chunk_data(chunk target_chunk, ObjData& output, WorldManager* world) {
   Vector3i block_pos;
 
   unpack_position(target_chunk.pos, block_pos.x, block_pos.y, block_pos.z);
@@ -140,7 +140,7 @@ void chunk_data(chunk target_chunk, ObjData& output) {
       for (int z = 0; z < 16; z++) {
         add_block(glm::vec3(block_pos.x + x, block_pos.y + y, block_pos.z + z),
                   output.vertices, output.indices,
-                  (uint8_t)target_chunk.blocks[(y << 8) | (z << 4) | x]);
+                  (uint8_t)target_chunk.blocks[(y << 8) | (z << 4) | x], world);
       }
     }
   }

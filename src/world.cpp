@@ -1,19 +1,6 @@
 #include "world.hpp"
 #include "utilities.hpp"
 
-// for debug//
-void generate_test_chunk(WorldManager &world) {
-  chunk *test_chunk = new chunk();
-
-  test_chunk->pos = pack_position(1024, 64, 512);
-
-  test_chunk->dirty = false;
-
-  test_chunk->blocks.fill(BLOCK::GRASS);
-
-  world.current_chunks.insert_or_assign(test_chunk->pos, test_chunk);
-}
-//
 void WorldManager::add_chunk(int64_t position, std::array<BLOCK, 4096> blocks) {
   chunk *new_chunk = new chunk();
 
@@ -43,25 +30,10 @@ void unpack_position(int64_t packed, int32_t &x, int32_t &y, int32_t &z) {
   z = (raw_z & 0x4000000) ? (int32_t)(raw_z | ~XZ_MASK) : (int32_t)(raw_z);
 }
 
-Vector3i chunk_relative_pos_to_absolute(int64_t chunk_pos, int32_t x, int32_t y, int32_t z) {
-  Vector3i final;
-  
-  unpack_position(chunk_pos, final.x, final.y, final.z);
-  final.x += x;
-  final.y += y;
-  final.z += z;
-
-  return final;
-}
-
 // chunks are 16x16x16
 chunk *WorldManager::get_chunk_from_position(int32_t x, int32_t y, int32_t z) {
-  // im using bitshifting cause im tuff (and its way faster)
-  int32_t chunk_x = x >> 4;
-  int32_t chunk_y = y >> 4;
-  int32_t chunk_z = z >> 4;
 
-  uint64_t packed_position = pack_position(chunk_x, chunk_y, chunk_z);
+  uint64_t packed_position = pack_position((x>>4)<<4, (y>>4)<<4, (z>>4)<<4);
 
   auto target = current_chunks.find(packed_position);
 
@@ -76,8 +48,8 @@ BLOCK WorldManager::get_block_from_position(int32_t x, int32_t y, int32_t z) {
   chunk *target_chunk = get_chunk_from_position(x, y, z);
 
   if (target_chunk == nullptr) {
-    std::cerr << "Tried to access unloaded chunk\n";
-    exit(-1);
+    // std::cerr << "Tried to access unloaded block\n";
+    return BLOCK::AIR;
   }
 
   uint8_t chunk_rel_x = x & 15;
@@ -125,7 +97,20 @@ void WorldManager::generate_chunks_at_position(Vector3i position, ObjData& mesh_
 
         if (y == 0) add_chunk(packed_position, ground_blocks);
         else add_chunk(packed_position, air_blocks);
-        chunk_data(*current_chunks.at(packed_position), mesh_data);
+
+      }
+    }
+  }
+  for (uint16_t z = 0; z < gen_length; z++) {
+    int32_t z_position = ((position.z >> 4) - render_distance) * 16 + (z * 16);
+    for (uint16_t y = 0; y < gen_length; y++) {
+      int32_t y_position = ((position.y >> 4) - render_distance) * 16 + (y * 16);
+      for (uint16_t x = 0; x < gen_length; x++) {
+        int32_t x_position = ((position.x >> 4) - render_distance) * 16 + (x * 16);
+
+        uint64_t packed_position = pack_position(x_position, y_position, z_position);
+
+        chunk_data(*current_chunks.at(packed_position), mesh_data, this);
 
       }
     }

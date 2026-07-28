@@ -5,6 +5,7 @@
 #include "../external/glm/gtc/type_ptr.hpp"
 #include <vector>
 #include "renderer.hpp"
+#include "utilities.hpp"
 
 void add_block(glm::vec3 pos, std::vector<float> &vertices,
-               std::vector<unsigned int> &indices, uint8_t texture);
+               std::vector<unsigned int> &indices, uint8_t texture, WorldManager* world);
