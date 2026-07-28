@@ -13,7 +13,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-Camera player_camera(glm::vec3(0.0f, 0.0f, 4.0f));
+Camera player_camera(glm::vec3(0.0f, 0.0f, 0.0f));
 
 double last_mouse_x = 400.0f;
 double last_mouse_y = 400.0f;
@@ -87,16 +87,19 @@ int main() {
   WorldManager world_manager;
   std::array<BLOCK, 4096> blocks;
   blocks.fill(BLOCK::STONE);
-  blocks.at(0) = BLOCK::GRASS;
-  world_manager.add_chunk(pack_position(0, 1, 0), blocks);
+  world_manager.add_chunk(pack_position(0, -16, 0), blocks);
+  world_manager.add_chunk(pack_position(0, 0, 0), blocks);
 
   renderer.init();
 
   ObjData world_mesh =
-      chunk_data(*world_manager.current_chunks.at(pack_position(0,1,0)));
+      chunk_data(*world_manager.current_chunks.at(pack_position(0,-16,0)));
+
+  append_chunk_data(world_mesh, chunk_data(*world_manager.current_chunks.at(pack_position(0, 0, 0))));   
 
   renderer.vertices = world_mesh.vertices;
   renderer.indices = world_mesh.indices;
+
   renderer.update_buffers();
 
   player_camera.model = glm::mat4(1.0f);
@@ -122,7 +125,8 @@ int main() {
     glfwPollEvents();
   }
 
-  world_manager.free_chunk(0);
+  world_manager.free_chunk(pack_position(0,-16,0));
+  world_manager.free_chunk(pack_position(0,0,0));
 
   glfwTerminate();
   return 0;

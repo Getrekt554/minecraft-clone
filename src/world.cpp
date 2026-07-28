@@ -29,8 +29,8 @@ void WorldManager::free_chunk(int64_t position) {
 }
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z) {
-  return (((uint64_t)(x)&XZ_MASK) << 37) | (((uint64_t)(y)&XZ_MASK) << 10) |
-         (((uint64_t)(z)&Y_MASK));
+  return (((uint64_t)(x)&XZ_MASK) << 37) | (((uint64_t)(z)&XZ_MASK) << 10) |
+         (((uint64_t)(y)&Y_MASK));
 }
 
 void unpack_position(int64_t packed, int32_t &x, int32_t &y, int32_t &z) {

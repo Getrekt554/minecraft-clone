@@ -34,6 +34,7 @@ bool operator==(const Vector3 &a, const Vector3i &b) {
   return (a.x == b.x && a.y == b.y && a.z == b.z);
 };
 
+
 Vector3i face_to_offset(DIRECTIONS face) {
   static constexpr Vector3i FACE_OFFSETS[]{
       {0, 0, -1}, // NORTH
@@ -141,10 +142,16 @@ ObjData chunk_data(chunk target_chunk) {
       for (int z = 0; z < 16; z++) {
         add_block(glm::vec3(block_pos.x + x, block_pos.y + y, block_pos.z + z),
                   final.vertices, final.indices,
-                  (int)target_chunk.blocks[(y << 8) | (z << 4) | x]);
+                  (uint8_t)target_chunk.blocks[(y << 8) | (z << 4) | x]);
       }
     }
   }
 
   return final;
+}
+
+void append_chunk_data(ObjData& mesh, ObjData chunk_data) {
+  mesh.vertices.insert(mesh.vertices.end(), chunk_data.vertices.begin(), chunk_data.vertices.end());
+
+  mesh.indices.insert(mesh.indices.end(), chunk_data.indices.begin(), chunk_data.indices.end());
 }

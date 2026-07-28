@@ -19,6 +19,9 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
       16, 17, 18, 16, 18, 19, // Bottom
       21, 20, 22, 22, 20, 23  // Top
   };
+
+  
+
   std::vector<float> cube_vertices = {
       // Positions          // Colors           // Texture Coords
       // Back Face

@@ -10,6 +10,7 @@ struct ObjData {
   std::vector<unsigned int> indices;
 };
 
+
 enum class DIRECTIONS { NORTH, SOUTH, EAST, WEST, UP, DOWN, UNDEFINED };
 
 struct raycast_data {
@@ -31,3 +32,4 @@ bool block_face_covered(WorldManager *world, Vector3i position,
 raycast_data cast_ray(WorldManager *world, Vector3 position, Vector3 direction);
 
 ObjData chunk_data(chunk target_chunk);
+void append_chunk_data(ObjData& mesh, ObjData chunk_data);
