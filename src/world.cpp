@@ -1,4 +1,5 @@
 #include "world.hpp"
+#include "utilities.hpp"
 
 // for debug//
 void generate_test_chunk(WorldManager &world) {
@@ -29,8 +30,7 @@ void WorldManager::free_chunk(int64_t position) {
 }
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z) {
-  return (((uint64_t)(x)&XZ_MASK) << 37) | (((uint64_t)(z)&XZ_MASK) << 10) |
-         (((uint64_t)(y)&Y_MASK));
+  return (((uint64_t)(x)&XZ_MASK) << 37) | (((uint64_t)(z)&XZ_MASK) << 10) | (((uint64_t)(y)&Y_MASK));
 }
 
 void unpack_position(int64_t packed, int32_t &x, int32_t &y, int32_t &z) {
@@ -89,8 +89,7 @@ BLOCK WorldManager::get_block_from_position(int32_t x, int32_t y, int32_t z) {
   return target_chunk->blocks[index];
 }
 
-void WorldManager::set_block_from_position(int32_t x, int32_t y, int32_t z,
-                                           BLOCK block_id) {
+void WorldManager::set_block_from_position(int32_t x, int32_t y, int32_t z, BLOCK block_id) {
   chunk *target_chunk = get_chunk_from_position(x, y, z);
 
   if (target_chunk == nullptr) {
@@ -105,4 +104,25 @@ void WorldManager::set_block_from_position(int32_t x, int32_t y, int32_t z,
 
   target_chunk->dirty = true;
   target_chunk->blocks[index] = block_id;
+}
+
+void WorldManager::generate_chunks_at_position(Vector3i position, ObjData& mesh_data) {
+  //right now its on 1 y-level on the xz plane
+  uint16_t gen_length = (uint16_t)(2 * render_distance + 1);
+
+  std::array<BLOCK, 4096> blocks;
+  blocks.fill(BLOCK::STONE);
+
+  for (uint16_t z = 0; z < gen_length; z++) {
+    int32_t z_position = ((position.z >> 4) - render_distance) * 16 + (z * 16);
+    for (uint16_t x = 0; x < gen_length; x++) {
+      int32_t x_position = ((position.x >> 4) - render_distance) * 16 + (x * 16);
+
+      uint64_t packed_position = pack_position(x_position, 0, z_position);
+
+      add_chunk(packed_position, blocks);
+      chunk_data(*current_chunks.at(packed_position), mesh_data);
+
+    }
+  }
 }

@@ -85,17 +85,12 @@ int main() {
 
   Renderer renderer;
   WorldManager world_manager;
-  std::array<BLOCK, 4096> blocks;
-  blocks.fill(BLOCK::STONE);
-  world_manager.add_chunk(pack_position(0, -16, 0), blocks);
-  world_manager.add_chunk(pack_position(0, 0, 0), blocks);
 
   renderer.init();
 
   ObjData world_mesh;
 
-  chunk_data(*world_manager.current_chunks.at(pack_position(0,-16,0)), world_mesh);
-  chunk_data(*world_manager.current_chunks.at(pack_position(0,0,0)), world_mesh);
+  world_manager.generate_chunks_at_position({0,0,0}, world_mesh);
 
   renderer.vertices = world_mesh.vertices;
   renderer.indices = world_mesh.indices;
@@ -125,8 +120,7 @@ int main() {
     glfwPollEvents();
   }
 
-  world_manager.free_chunk(pack_position(0,-16,0));
-  world_manager.free_chunk(pack_position(0,0,0));
+  for (auto& pair : world_manager.current_chunks) {world_manager.free_chunk(pair.second->pos);}
 
   glfwTerminate();
   return 0;

@@ -5,12 +5,6 @@
 #include <vector>
 #include "block_handler.hpp"
 
-struct ObjData {
-  std::vector<float> vertices;
-  std::vector<unsigned int> indices;
-};
-
-
 enum class DIRECTIONS { NORTH, SOUTH, EAST, WEST, UP, DOWN, UNDEFINED };
 
 struct raycast_data {

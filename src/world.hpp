@@ -24,8 +24,7 @@ struct chunk {
 
 class WorldManager {
 public:
-  // TODO: find out a size to reserve for the unordered map to make it WAY
-  // faster
+  // TODO: find out a size to reserve for the unordered map to make it WAY faster
   std::unordered_map<int64_t, chunk *> current_chunks;
 
   chunk *get_chunk_from_position(int32_t x, int32_t y, int32_t z);
@@ -35,7 +34,7 @@ public:
   void add_chunk(int64_t position, std::array<BLOCK, 4096> blocks);
   void free_chunk(int64_t position);
 
-  void render_world();
+  void generate_chunks_at_position(Vector3i position, ObjData& mesh_data);
 };
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z);
