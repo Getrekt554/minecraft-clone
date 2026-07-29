@@ -6,14 +6,11 @@
 
 #define PI 3.14159265359
 
-const int WIDTH = 800;
-const int HEIGHT = 800;
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-Camera player_camera(glm::vec3(0.0f, -200.0f, 0.0f));
+Camera player_camera(glm::vec3(0.0f, 75.0f, 0.0f));
 
 double last_mouse_x = 400.0f;
 double last_mouse_y = 400.0f;
@@ -60,7 +57,7 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  GLFWwindow *window = glfwCreateWindow(800, 800, "CloneCraft", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "CloneCraft", NULL, NULL);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   if (window == NULL) {
@@ -90,13 +87,6 @@ int main() {
 
   ObjData world_mesh;
 
-  world_manager.generate_chunks_at_position({0,0,0}, world_mesh);
-
-  renderer.vertices = world_mesh.vertices;
-  renderer.indices = world_mesh.indices;
-
-  renderer.update_buffers();
-
   player_camera.model = glm::mat4(1.0f);
 
   float delta_time = 0.0f;
@@ -107,6 +97,26 @@ int main() {
     float current_frame = (float)glfwGetTime();
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
+
+    //render chunks
+    static glm::ivec2 last_chunk = {-999, -999};
+
+    glm::ivec2 current_chunk = {
+        (int)player_camera.Position.x >> 4,
+        (int)player_camera.Position.z >> 4
+    };
+
+    if (current_chunk != last_chunk) {
+      world_manager.generate_chunks_at_position({(int)player_camera.Position.x, 0, (int)player_camera.Position.z});
+      world_manager.mesh_all_chunks(world_mesh);
+
+      last_chunk = current_chunk;
+
+      renderer.vertices = world_mesh.vertices;
+      renderer.indices = world_mesh.indices;
+
+      renderer.update_buffers();
+    }
 
     // input
     process_input(window, delta_time);

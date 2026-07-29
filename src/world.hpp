@@ -5,6 +5,7 @@
 #include <array>
 #include "settings.hpp"
 #include <iostream>
+#include "../external/FastNoiseLite.h"
 
 // chunk positions are 64 bit.
 // 27 for x
@@ -34,7 +35,8 @@ public:
   void add_chunk(int64_t position, std::array<BLOCK, 4096> blocks);
   void free_chunk(int64_t position);
 
-  void generate_chunks_at_position(Vector3i position, ObjData& mesh_data);
+  void generate_chunks_at_position(Vector3i position);
+  void mesh_all_chunks(ObjData& mesh_data);
 };
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z);

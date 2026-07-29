@@ -16,4 +16,7 @@ struct Vector3 {
   float x, y, z;
 };
 
-static uint8_t render_distance = 16;
+static const int WIDTH = 1920;
+static const int HEIGHT = 1080;
+
+static uint8_t render_distance = 3;

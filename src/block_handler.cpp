@@ -7,7 +7,7 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
   if (texture == uint8_t(BLOCK::AIR)) {
     return;
   }
-
+  
   unsigned int o = 0;
 
   glm::vec2 uv_offset = get_texture_offset(texture - 1);
@@ -62,10 +62,10 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
   //     -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f};
 
   if (!block_face_covered(world, pos, DIRECTIONS::NORTH)) {
-    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-      0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-      0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f});
+    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.8f, 0.8f, 0.8f,
+      0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.8f, 0.8f, 0.8f,
+      0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.8f, 0.8f, 0.8f,
+      -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.8f, 0.8f, 0.8f,});
     cube_indices.insert(cube_indices.end(),
       {1,  0,  2,  2,  0,  3});
   }
@@ -73,10 +73,10 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
     o = 4;
   }
   if (!block_face_covered(world, pos, DIRECTIONS::SOUTH)) {
-    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-      0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-      0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f});
+    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.8f, 0.8f, 0.8f,
+      0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.8f, 0.8f, 0.8f,
+      0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.8f, 0.8f, 0.8f,
+      -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.8f, 0.8f, 0.8f,});
     cube_indices.insert(cube_indices.end(),
       {4-o,  5-o,  6-o,  4-o,  6-o,  7-o});
   }
@@ -84,10 +84,10 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
     o += 4;
   }
   if (!block_face_covered(world, pos, DIRECTIONS::WEST)) {
-    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-      -0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-      -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f});
+    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.65f, 0.65f, 0.65f,
+      -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.65f, 0.65f, 0.65f,
+      -0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.65f, 0.65f, 0.65f,
+      -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.65f, 0.65f, 0.65f,});
     cube_indices.insert(cube_indices.end(),
       {8-o,  9-o,  10-o, 8-o,  10-o, 11-o});
   }
@@ -95,10 +95,10 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
     o += 4;
   }
   if (!block_face_covered(world, pos, DIRECTIONS::EAST)) {
-    cube_vertices.insert(cube_vertices.end(), {0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-      0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-      0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f});
+    cube_vertices.insert(cube_vertices.end(), {0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.65f, 0.65f, 0.65f,
+      0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.65f, 0.65f, 0.65f,
+      0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.65f, 0.65f, 0.65f,
+      0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.65f, 0.65f, 0.65f,});
     cube_indices.insert(cube_indices.end(),
       {13-o, 12-o, 14-o, 14-o, 12-o, 15-o});
   }
@@ -106,10 +106,10 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
     o += 4;
   }
   if (!block_face_covered(world, pos, DIRECTIONS::DOWN)) {
-    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-      0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-      -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f});
+    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.4f, 0.4f, 0.4f,
+      0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.4f, 0.4f, 0.4f,
+      0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.4f, 0.4f, 0.4f,
+      -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.4f, 0.4f, 0.4f,});
     cube_indices.insert(cube_indices.end(),
       {16-o, 17-o, 18-o, 16-o, 18-o, 19-o});
   }
@@ -117,10 +117,10 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
     o += 4;
   }
   if (!block_face_covered(world, pos, DIRECTIONS::UP)) {
-    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-      0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-      0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-      -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f});
+    cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.95f, 0.95f, 0.95f,
+      0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.95f, 0.95f, 0.95f,
+      0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.95f, 0.95f, 0.95f,
+      -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.95f, 0.95f, 0.95f,});
     cube_indices.insert(cube_indices.end(),
       {21-o, 20-o, 22-o, 22-o, 20-o, 23-o});
   }
@@ -129,14 +129,15 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
   }
 
   for (unsigned int &index : cube_indices) {
-    index += vertices.size() / 8;
+    index += vertices.size() / 11;
   }
 
-  for (int i = 6; i < cube_vertices.size(); i += 6) {
-    cube_vertices[i] += uv_offset.x;
-    cube_vertices[i++] /= ATLAS_SIZE;
-    cube_vertices[i] += uv_offset.y;
-    cube_vertices[i++] /= ATLAS_SIZE;
+  if (!cube_vertices.empty()) {
+    float* data = cube_vertices.data();
+    for (int i = 6; i < cube_vertices.size(); i += 11) {
+      data[i] = (data[i] + uv_offset.x) / ATLAS_SIZE; 
+      data[i+1] = (data[i+1] + uv_offset.y) / ATLAS_SIZE;
+    }
   }
 
   vertices.insert(vertices.end(), cube_vertices.begin(), cube_vertices.end());

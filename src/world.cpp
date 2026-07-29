@@ -33,7 +33,11 @@ void unpack_position(int64_t packed, int32_t &x, int32_t &y, int32_t &z) {
 // chunks are 16x16x16
 chunk *WorldManager::get_chunk_from_position(int32_t x, int32_t y, int32_t z) {
 
-  uint64_t packed_position = pack_position((x>>4)<<4, (y>>4)<<4, (z>>4)<<4);
+  int32_t cx = (x >> 4) << 4;
+  int32_t cy = (y >> 4) << 4;
+  int32_t cz = (z >> 4) << 4;
+
+  uint64_t packed_position = pack_position(cx, cy, cz);
 
   auto target = current_chunks.find(packed_position);
 
@@ -78,8 +82,25 @@ void WorldManager::set_block_from_position(int32_t x, int32_t y, int32_t z, BLOC
   target_chunk->blocks[index] = block_id;
 }
 
-void WorldManager::generate_chunks_at_position(Vector3i position, ObjData& mesh_data) {
+void WorldManager::generate_chunks_at_position(Vector3i position) {
+  static FastNoiseLite noise_generator;
+  static bool noise_initialized = false;
+  if (!noise_initialized) {
+    noise_generator.SetSeed(1326789);
+    noise_generator.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    noise_generator.SetFractalType(FastNoiseLite::FractalType_FBm);
+    noise_generator.SetFractalOctaves(4);
+    noise_generator.SetFractalLacunarity(2.0f);
+    noise_generator.SetFractalGain(0.55f);
+    noise_generator.SetFrequency(0.003f);
+    noise_initialized = true;
+  }
+
   uint16_t gen_length = (uint16_t)(2 * render_distance + 1);
+
+  int32_t player_chunk_x = position.x >> 4;
+  int32_t player_chunk_y = 0;
+  int32_t player_chunk_z = position.z >> 4;
 
   std::array<BLOCK, 4096> ground_blocks;
   ground_blocks.fill(BLOCK::STONE);
@@ -87,32 +108,62 @@ void WorldManager::generate_chunks_at_position(Vector3i position, ObjData& mesh_
   air_blocks.fill(BLOCK::AIR);
 
   for (uint16_t z = 0; z < gen_length; z++) {
-    int32_t z_position = ((position.z >> 4) - render_distance) * 16 + (z * 16);
+    int32_t z_position = (player_chunk_z - render_distance + z) * 16;
+
     for (uint16_t y = 0; y < gen_length; y++) {
-      int32_t y_position = ((position.y >> 4) - render_distance) * 16 + (y * 16);
+      int32_t y_position = (player_chunk_y - render_distance + y) * 16;
+      
       for (uint16_t x = 0; x < gen_length; x++) {
-        int32_t x_position = ((position.x >> 4) - render_distance) * 16 + (x * 16);
+        int32_t x_position = (player_chunk_x - render_distance + x) * 16;
 
         uint64_t packed_position = pack_position(x_position, y_position, z_position);
 
-        if (y == 0) add_chunk(packed_position, ground_blocks);
-        else add_chunk(packed_position, air_blocks);
+        if (current_chunks.find(packed_position) != current_chunks.end()) {
+          continue;
+        }
 
+        std::array<BLOCK, 4096> chunk_blocks{};
+        bool has_blocks = false;
+
+        for (int bz = 0; bz < 16; bz++) {
+          float abs_z = z_position + bz;
+
+          for (int bx = 0; bx < 16; bx++) {
+            float abs_x = x_position + bx;
+
+            float base_noise = noise_generator.GetNoise(abs_x, abs_z);
+            int surfaceY = 64 + (base_noise * 30) + (pow(abs(base_noise), 2.5f) * 120);
+
+            for (int by = 0; by < 16; by++) {
+              float abs_y = y_position + by;
+              
+              int local = bx + (bz * 16) + (by * 256);
+              
+              if (abs_y < surfaceY) {
+                chunk_blocks[local] = BLOCK::STONE;
+                has_blocks = true;
+              } 
+              else if (abs_y == surfaceY) {
+                chunk_blocks[local] = BLOCK::GRASS;
+                has_blocks = true;
+              } 
+              else {
+                chunk_blocks[local] = BLOCK::AIR;
+              }
+            }
+          }
+        }
+
+        if (has_blocks) {
+          add_chunk(packed_position, chunk_blocks);
+        }
       }
     }
   }
-  for (uint16_t z = 0; z < gen_length; z++) {
-    int32_t z_position = ((position.z >> 4) - render_distance) * 16 + (z * 16);
-    for (uint16_t y = 0; y < gen_length; y++) {
-      int32_t y_position = ((position.y >> 4) - render_distance) * 16 + (y * 16);
-      for (uint16_t x = 0; x < gen_length; x++) {
-        int32_t x_position = ((position.x >> 4) - render_distance) * 16 + (x * 16);
+}
 
-        uint64_t packed_position = pack_position(x_position, y_position, z_position);
-
-        chunk_data(*current_chunks.at(packed_position), mesh_data, this);
-
-      }
-    }
+void WorldManager::mesh_all_chunks(ObjData& mesh_data) {
+  for (auto& [packed_pos, chunk_ptr] : current_chunks) {
+    chunk_data(*chunk_ptr, mesh_data, this);
   }
 }

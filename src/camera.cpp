@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "settings.hpp"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) {
   Position = position;
@@ -46,7 +47,7 @@ void Camera::tick(unsigned int shader_program) {
   view = get_view_matrix();
 
   projection =
-      glm::perspective(glm::radians(90.0f), 800.0f / 800.0f, 0.1f, 1000.0f);
+      glm::perspective(glm::radians(90.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
 
   unsigned int modelLoc = glGetUniformLocation(shader_program, "model");
   unsigned int viewLoc = glGetUniformLocation(shader_program, "view");
