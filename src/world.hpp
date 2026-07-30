@@ -19,8 +19,9 @@ struct chunk {
   int64_t pos;
 
   // x + (y * width) + (z * width * height)
+  bool empty = false;
   std::array<BLOCK, 4096> blocks;
-  bool dirty = true;
+  bool dirty = false;
 
   ObjData mesh;
   bool meshed = false;
@@ -39,6 +40,7 @@ struct chunk {
 
 class WorldManager {
 public:
+  bool noise_initialized;
   // TODO: find out a size to reserve for the unordered map to make it WAY faster
   std::unordered_map<int64_t, chunk *> current_chunks;
 
@@ -50,7 +52,10 @@ public:
   void free_chunk(int64_t position);
 
   void generate_chunks_at_position(Vector3i position);
-  void mesh_all_chunks();
+  void mesh_all_chunks(Vector3i position);
+  WorldManager();
+
+  chunk empty_chunk;
 };
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z);

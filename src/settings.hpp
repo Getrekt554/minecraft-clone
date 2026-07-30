@@ -6,7 +6,7 @@ struct ObjData {
   std::vector<unsigned int> indices;
 };
 
-enum class BLOCK : uint8_t { AIR, GRASS = 1, STONE = 2 };
+enum class BLOCK : uint8_t {AIR = 0, GRASS = 1, STONE = 2 };
 
 struct Vector3i {
   int32_t x, y, z;

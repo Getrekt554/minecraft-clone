@@ -47,8 +47,8 @@ void process_input(GLFWwindow *window, float delta_time) {
   last_mouse_x = mouse_x;
   last_mouse_y = mouse_y;
 
-  player_camera.rotate(x_offset * player_camera.sensitivity,
-                       y_offset * player_camera.sensitivity);
+  player_camera.rotate(x_offset * player_camera.sensitivity*delta_time,
+                       y_offset * player_camera.sensitivity*delta_time);
 }
 
 int main() {
@@ -106,7 +106,7 @@ int main() {
 
     if (current_chunk != last_chunk) {
       world_manager.generate_chunks_at_position({(int)player_camera.Position.x, 0, (int)player_camera.Position.z});
-      world_manager.mesh_all_chunks();
+      world_manager.mesh_all_chunks({(int)player_camera.Position.x, 0, (int)player_camera.Position.z});
 
       for (auto& [pos, chunk_ptr] : world_manager.current_chunks) {
         if (!chunk_ptr->uploaded) {
@@ -119,7 +119,6 @@ int main() {
     }
 
     renderer.tick(player_camera);
-
     renderer.draw(&world_manager);
 
     glfwSwapBuffers(window);

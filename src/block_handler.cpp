@@ -12,54 +12,9 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
 
   glm::vec2 uv_offset = get_texture_offset(texture - 1);
 
-  std::vector<unsigned int> cube_indices;// = {
-  //     1,  0,  2,  2,  0,  3,  // Back
-  //     4,  5,  6,  4,  6,  7,  // Front
-  //     8,  9,  10, 8,  10, 11, // Left
-  //     13, 12, 14, 14, 12, 15, // Right
-  //     16, 17, 18, 16, 18, 19, // Bottom
-  //     21, 20, 22, 22, 20, 23  // Top
-  // };
+  std::vector<unsigned int> cube_indices;
 
-  
-
-  std::vector<float> cube_vertices ;//= {
-  //     // Positions          // Colors           // Texture Coords
-  //     // Back Face
-  //     -0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-  //     0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-  //     0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  //     -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-
-  //     // Front Face
-  //     -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-  //     0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-  //     0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  //     -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-
-  //     // Left Face
-  //     -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  //     -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-  //     -0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-  //     -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-
-  //     // Right Face
-  //     0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  //     0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-  //     0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-  //     0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-
-  //     // Bottom Face
-  //     -0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-  //     0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  //     0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-  //     -0.5f + pos.x, -0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-
-  //     // Top Face
-  //     -0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-  //     0.5f + pos.x, 0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-  //     0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-  //     -0.5f + pos.x, 0.5f + pos.y, 0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f};
+  std::vector<float> cube_vertices ;
 
   if (!block_face_covered(world, pos, DIRECTIONS::NORTH)) {
     cube_vertices.insert(cube_vertices.end(), {-0.5f + pos.x, -0.5f + pos.y, -0.5f + pos.z, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.8f, 0.8f, 0.8f,
@@ -133,10 +88,9 @@ void add_block(glm::vec3 pos, std::vector<float> &vertices,
   }
 
   if (!cube_vertices.empty()) {
-    float* data = cube_vertices.data();
     for (int i = 6; i < cube_vertices.size(); i += 11) {
-      data[i] = (data[i] + uv_offset.x) / ATLAS_SIZE; 
-      data[i+1] = (data[i+1] + uv_offset.y) / ATLAS_SIZE;
+      cube_vertices[i] = (cube_vertices[i] + uv_offset.x) / ATLAS_SIZE; 
+      cube_vertices[i+1] = (cube_vertices[i+1] + uv_offset.y) / ATLAS_SIZE;
     }
   }
 

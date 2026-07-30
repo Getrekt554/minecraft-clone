@@ -1,7 +1,19 @@
 #include "world.hpp"
 #include "utilities.hpp"
 
+WorldManager::WorldManager() {
+  noise_initialized = false;
+
+  empty_chunk.blocks.fill(BLOCK::AIR);
+  empty_chunk.pos = 0xFFFFFFFFFFFFFFFF;
+}
+
 void WorldManager::add_chunk(int64_t position, std::array<BLOCK, 4096> blocks) {
+  if (blocks.empty()) {
+    current_chunks.insert_or_assign(position, &empty_chunk);
+    return;
+  }
+
   chunk *new_chunk = new chunk();
 
   new_chunk->pos = position;
@@ -13,12 +25,6 @@ void WorldManager::add_chunk(int64_t position, std::array<BLOCK, 4096> blocks) {
   current_chunks.insert_or_assign(new_chunk->pos, new_chunk);
 }
 
-void WorldManager::free_chunk(int64_t position) {
-  current_chunks.at(position)->free_mesh();
-
-  delete current_chunks.at(position);
-  current_chunks.erase(position);
-}
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z) {
   return (((uint64_t)(x)&XZ_MASK) << 37) | (((uint64_t)(z)&XZ_MASK) << 10) | (((uint64_t)(y)&Y_MASK));
@@ -90,7 +96,6 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
   bool generated_new_chunks = false;
 
   static FastNoiseLite noise_generator;
-  static bool noise_initialized = false;
   if (!noise_initialized) {
     noise_generator.SetSeed(1326789);
     noise_generator.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
@@ -108,19 +113,14 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
   int32_t player_chunk_y = 0;
   int32_t player_chunk_z = position.z >> 4;
 
-  std::array<BLOCK, 4096> ground_blocks;
-  ground_blocks.fill(BLOCK::STONE);
-  std::array<BLOCK, 4096> air_blocks;
-  air_blocks.fill(BLOCK::AIR);
-
   for (uint16_t z = 0; z < gen_length; z++) {
-    int32_t z_position = (player_chunk_z - render_distance + z) * 16;
+    int32_t z_position = (player_chunk_z - render_distance + z) << 4;
 
     for (uint16_t y = 0; y < gen_length; y++) {
-      int32_t y_position = (player_chunk_y - render_distance + y) * 16;
+      int32_t y_position = (player_chunk_y - render_distance + y) << 4;
       
       for (uint16_t x = 0; x < gen_length; x++) {
-        int32_t x_position = (player_chunk_x - render_distance + x) * 16;
+        int32_t x_position = (player_chunk_x - render_distance + x) << 4;
 
         uint64_t packed_position = pack_position(x_position, y_position, z_position);
 
@@ -164,6 +164,9 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
           add_chunk(packed_position, chunk_blocks);
           generated_new_chunks = true;
         }
+        else {
+          add_chunk(packed_position, empty_chunk.blocks);
+        }
       }
     }
   }
@@ -171,8 +174,24 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
   if (generated_new_chunks) {std::cout << "generated new chunks" << std::endl;}
 }
 
-void WorldManager::mesh_all_chunks() {
+void WorldManager::mesh_all_chunks(Vector3i position) {
+  int32_t x,y,z;
+
   for (auto& [pos, chunk_ptr] : current_chunks) {
+    unpack_position(pos, x, y, z);
+    if ((abs(position.x - x) >> 4) > render_distance) {
+      free_chunk(pos);
+      continue;
+    }
+    if ((abs(position.y - y) >> 4) > render_distance) {
+      free_chunk(pos);
+      continue;
+    }
+    if ((abs(position.z - z) >> 4) > render_distance) {
+      free_chunk(pos);
+      continue;
+    }
+
     if (!chunk_ptr->meshed) {
       chunk_data(*chunk_ptr, chunk_ptr->mesh, this);
       chunk_ptr->meshed = true;
@@ -239,4 +258,10 @@ void chunk::draw() {
   glBindVertexArray(VAO);
   glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
+}
+void WorldManager::free_chunk(int64_t position) {
+  current_chunks.at(position)->free_mesh();
+
+  delete current_chunks.at(position);
+  current_chunks.erase(position);
 }
