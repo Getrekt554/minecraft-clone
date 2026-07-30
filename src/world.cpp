@@ -9,20 +9,31 @@ WorldManager::WorldManager() {
 }
 
 void WorldManager::add_chunk(int64_t position, std::array<BLOCK, 4096> blocks) {
+  chunk *new_chunk;
+
   if (blocks.empty()) {
     current_chunks.insert_or_assign(position, &empty_chunk);
     return;
   }
+  else {
+    new_chunk = new chunk();
 
-  chunk *new_chunk = new chunk();
-
-  new_chunk->pos = position;
-
-  new_chunk->blocks = blocks;
-
-  new_chunk->meshed = false;
+    new_chunk->pos = position;
+    new_chunk->blocks = blocks;
+    new_chunk->meshed = false;
+  }
   
   current_chunks.insert_or_assign(new_chunk->pos, new_chunk);
+
+  //remesh neighboring chunks (at some point we should probably replace the packing functions with just binary)
+  int32_t x, y, z;
+  unpack_position(new_chunk->pos, x, y, z);
+  if (chunk* c = get_chunk_from_position(x+16, y, z)) {c->meshed = false; c->uploaded = false;}
+  if (chunk* c = get_chunk_from_position(x-16, y, z)) {c->meshed = false; c->uploaded = false;}
+  if (chunk* c = get_chunk_from_position(x, y+16, z)) {c->meshed = false; c->uploaded = false;}
+  if (chunk* c = get_chunk_from_position(x, y-16, z)) {c->meshed = false; c->uploaded = false;}
+  if (chunk* c = get_chunk_from_position(x, y, z+16)) {c->meshed = false; c->uploaded = false;}
+  if (chunk* c = get_chunk_from_position(x, y, z-16)) {c->meshed = false; c->uploaded = false;}
 }
 
 
@@ -102,15 +113,15 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
     noise_generator.SetFractalType(FastNoiseLite::FractalType_FBm);
     noise_generator.SetFractalOctaves(4);
     noise_generator.SetFractalLacunarity(2.0f);
-    noise_generator.SetFractalGain(0.55f);
-    noise_generator.SetFrequency(0.0008f);
+    noise_generator.SetFractalGain(0.6f);
+    noise_generator.SetFrequency(0.0005f);
     noise_initialized = true;
   }
 
   uint16_t gen_length = (uint16_t)(2 * render_distance + 1);
 
   int32_t player_chunk_x = position.x >> 4;
-  int32_t player_chunk_y = 0;
+  int32_t player_chunk_y = position.y >> 4;;
   int32_t player_chunk_z = position.z >> 4;
 
   for (uint16_t z = 0; z < gen_length; z++) {
@@ -138,7 +149,7 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
             float abs_x = x_position + bx;
 
             float base_noise = noise_generator.GetNoise(abs_x, abs_z);
-            int surfaceY = 64 + (base_noise * 30) + (pow(abs(base_noise), 2.5f) * 120);
+            int surfaceY = 64 + (base_noise * 30) + (pow(abs(base_noise), 2.0f) * 500);
 
             for (int by = 0; by < 16; by++) {
               float abs_y = y_position + by;

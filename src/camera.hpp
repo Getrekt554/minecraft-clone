@@ -15,7 +15,7 @@ public:
   glm::vec3 WorldUp;
 
   float speed = 8.0f;
-  float sensitivity = 30.0f;
+  float sensitivity = 0.05f;
 
   float Yaw;
   float Pitch;
