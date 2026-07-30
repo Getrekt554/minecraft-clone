@@ -21,6 +21,20 @@ struct chunk {
   // x + (y * width) + (z * width * height)
   std::array<BLOCK, 4096> blocks;
   bool dirty = true;
+
+  ObjData mesh;
+  bool meshed = false;
+  bool uploaded = false;
+
+  unsigned int VAO = 0;
+  unsigned int VBO = 0;
+  unsigned int EBO = 0;
+
+  size_t index_count = 0;
+
+  void upload_mesh();
+  void free_mesh();
+  void draw();
 };
 
 class WorldManager {
@@ -36,7 +50,7 @@ public:
   void free_chunk(int64_t position);
 
   void generate_chunks_at_position(Vector3i position);
-  void mesh_all_chunks(ObjData& mesh_data);
+  void mesh_all_chunks();
 };
 
 int64_t pack_position(int32_t x, int32_t y, int32_t z);

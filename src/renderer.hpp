@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+class WorldManager;
+
 const unsigned int ATLAS_SIZE = 16;
 glm::vec2 get_texture_offset(unsigned int texture);
 
@@ -16,16 +18,11 @@ public:
 
   void tick(Camera camera);
 
-  void draw();
+  void draw(WorldManager* world_manager);
 
   void update_buffers();
-  std::vector<unsigned int> indices;
-  std::vector<float> vertices;
 
 private:
-  unsigned int VAO;
-  unsigned int VBO;
-  unsigned int EBO;
   unsigned int vertex_shader;
   unsigned int frag_shader;
   unsigned int shader_program;

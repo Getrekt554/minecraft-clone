@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 #include "camera.hpp"
+#include "world.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "../external/stb_image.h"
 #include <vector>
@@ -36,63 +37,27 @@ const char *fragShaderSource =
     "}\0";
 
 void Renderer::init() {
-  glGenVertexArrays(1, &VAO);
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
 
-  glBindVertexArray(VAO);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, 4);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  glGenBuffers(1, &VBO);
+  int width, height, nrChannels;
+  unsigned char* data = stbi_load("../textures/blocks/atlas.png", &width, &height, &nrChannels, STBI_rgb_alpha);
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-               vertices.data(), GL_DYNAMIC_DRAW);
-
-  // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (11 * sizeof(float)), (void *)0);
-  glEnableVertexAttribArray(0);
-  // color attribute
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (11 * sizeof(float)), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  // UV attribute
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (11 * sizeof(float)), (void *)(6 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-  // Light attribute
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, (11 * sizeof(float)), (void *)(8 * sizeof(float)));
-  glEnableVertexAttribArray(3);
-
-  glGenBuffers(1, &EBO);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-               indices.data(), GL_DYNAMIC_DRAW);
-
-  {
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, 4); 
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load("../textures/blocks/atlas.png", &width,
-                                    &height, &nrChannels, STBI_rgb_alpha);
-
-    if (!data) {
-      std::cerr << "check filepath retep\n";
-      stbi_image_free(data);
-      exit(-1);
-    }
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
+  if (!data) {
+    std::cerr << "check filepath retep\n";
+    exit(-1);
   }
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+  stbi_image_free(data);
 
   // shader
   vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -143,29 +108,13 @@ void Renderer::tick(Camera camera) {
   camera.tick(shader_program);
 }
 
-void Renderer::draw() {
+void Renderer::draw(WorldManager* world_manager) {
+  glUseProgram(shader_program);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glBindVertexArray(VAO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-}
 
-void Renderer::update_buffers() {
-  glBindVertexArray(VAO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), nullptr,
-               GL_DYNAMIC_DRAW);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),
-               vertices.data(), GL_DYNAMIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-               nullptr, GL_DYNAMIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-               indices.data(), GL_DYNAMIC_DRAW);
-
-  glBindVertexArray(0);
+  for (auto& [pos, chunk_ptr] : world_manager->current_chunks) {
+    chunk_ptr->draw();
+  }
 }
 
 glm::vec2 get_texture_offset(unsigned int texture) {

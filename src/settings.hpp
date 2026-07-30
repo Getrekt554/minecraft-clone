@@ -19,4 +19,4 @@ struct Vector3 {
 static const int WIDTH = 1920;
 static const int HEIGHT = 1080;
 
-static uint8_t render_distance = 3;
+static uint8_t render_distance = 8;

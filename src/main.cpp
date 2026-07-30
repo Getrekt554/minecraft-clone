@@ -47,8 +47,8 @@ void process_input(GLFWwindow *window, float delta_time) {
   last_mouse_x = mouse_x;
   last_mouse_y = mouse_y;
 
-  player_camera.rotate(x_offset * player_camera.sensitivity * delta_time,
-                       y_offset * player_camera.sensitivity * delta_time);
+  player_camera.rotate(x_offset * player_camera.sensitivity,
+                       y_offset * player_camera.sensitivity);
 }
 
 int main() {
@@ -85,20 +85,18 @@ int main() {
 
   renderer.init();
 
-  ObjData world_mesh;
-
   player_camera.model = glm::mat4(1.0f);
 
   float delta_time = 0.0f;
   float last_frame = 0.0f;
 
   while (!glfwWindowShouldClose(window)) {
-    // calculate delta time
     float current_frame = (float)glfwGetTime();
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
 
-    //render chunks
+    process_input(window, delta_time);
+
     static glm::ivec2 last_chunk = {-999, -999};
 
     glm::ivec2 current_chunk = {
@@ -108,24 +106,22 @@ int main() {
 
     if (current_chunk != last_chunk) {
       world_manager.generate_chunks_at_position({(int)player_camera.Position.x, 0, (int)player_camera.Position.z});
-      world_manager.mesh_all_chunks(world_mesh);
+      world_manager.mesh_all_chunks();
+
+      for (auto& [pos, chunk_ptr] : world_manager.current_chunks) {
+        if (!chunk_ptr->uploaded) {
+          chunk_ptr->upload_mesh();
+          chunk_ptr->uploaded = true;
+        }
+      }
 
       last_chunk = current_chunk;
-
-      renderer.vertices = world_mesh.vertices;
-      renderer.indices = world_mesh.indices;
-
-      renderer.update_buffers();
     }
-
-    // input
-    process_input(window, delta_time);
 
     renderer.tick(player_camera);
 
-    renderer.draw();
+    renderer.draw(&world_manager);
 
-    // check events and swap buffers
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
