@@ -130,7 +130,7 @@ raycast_data cast_ray(WorldManager *world, Vector3 position,
   return {false, {0, 0, 0}, DIRECTIONS::UNDEFINED};
 }
 
-void chunk_data(chunk target_chunk, ObjData& output, WorldManager* world) {
+void chunk_data(const chunk target_chunk, ObjData& output, WorldManager* world) {
   Vector3i block_pos;
 
   unpack_position(target_chunk.pos, block_pos.x, block_pos.y, block_pos.z);

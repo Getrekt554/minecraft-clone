@@ -6,6 +6,8 @@ WorldManager::WorldManager() {
 
   empty_chunk.blocks.fill(BLOCK::AIR);
   empty_chunk.pos = 0xFFFFFFFFFFFFFFFF;
+
+  current_chunks.reserve(pow(2*render_distance + 1, 3));
 }
 
 void WorldManager::add_chunk(int64_t position, std::array<BLOCK, 4096> blocks) {
@@ -103,6 +105,7 @@ void WorldManager::set_block_from_position(int32_t x, int32_t y, int32_t z, BLOC
   target_chunk->blocks[index] = block_id;
 }
 
+
 void WorldManager::generate_chunks_at_position(Vector3i position) {
   bool generated_new_chunks = false;
 
@@ -135,8 +138,10 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
 
         uint64_t packed_position = pack_position(x_position, y_position, z_position);
 
-        if (current_chunks.find(packed_position) != current_chunks.end()) {
-          continue;
+        auto [it, inserted] = current_chunks.try_emplace(packed_position, nullptr);
+
+        if (!inserted) {
+            continue;
         }
 
         std::array<BLOCK, 4096> chunk_blocks{};
@@ -149,7 +154,7 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
             float abs_x = x_position + bx;
 
             float base_noise = noise_generator.GetNoise(abs_x, abs_z);
-            int surfaceY = 64 + (base_noise * 30) + (pow(abs(base_noise), 2.0f) * 500);
+            int surfaceY = 64 + (base_noise * 30) + (base_noise * base_noise * 500);
 
             for (int by = 0; by < 16; by++) {
               float abs_y = y_position + by;
@@ -173,7 +178,6 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
 
         if (has_blocks) {
           add_chunk(packed_position, chunk_blocks);
-          generated_new_chunks = true;
         }
         else {
           add_chunk(packed_position, empty_chunk.blocks);
@@ -182,37 +186,52 @@ void WorldManager::generate_chunks_at_position(Vector3i position) {
     }
   }
 
-  if (generated_new_chunks) {std::cout << "generated new chunks" << std::endl;}
 }
 
-void WorldManager::mesh_all_chunks(Vector3i position) {
-  int32_t x,y,z;
+void WorldManager::mesh_all_chunks(Vector3i position)
+{
+    std::vector<chunk*> chunks_to_mesh;
 
-  for (auto& [pos, chunk_ptr] : current_chunks) {
-    unpack_position(pos, x, y, z);
-    if ((abs(position.x - x) >> 4) > render_distance) {
-      free_chunk(pos);
-      continue;
-    }
-    if ((abs(position.y - y) >> 4) > render_distance) {
-      free_chunk(pos);
-      continue;
-    }
-    if ((abs(position.z - z) >> 4) > render_distance) {
-      free_chunk(pos);
-      continue;
+    for(auto& [pos, chunk_ptr] : current_chunks)
+    {
+        if(!chunk_ptr->meshed)
+            chunks_to_mesh.push_back(chunk_ptr);
     }
 
-    if (!chunk_ptr->meshed) {
-      chunk_data(*chunk_ptr, chunk_ptr->mesh, this);
-      chunk_ptr->meshed = true;
+
+    #pragma omp parallel for
+    for(int i=0;i<chunks_to_mesh.size();i++)
+    {
+        chunk* c = chunks_to_mesh[i];
+
+        if(c == &empty_chunk)
+            continue;
+
+        int32_t x,y,z;
+        unpack_position(c->pos,x,y,z);
+
+        if((abs(position.x-x)>>4)>render_distance ||
+           (abs(position.y-y)>>4)>render_distance ||
+           (abs(position.z-z)>>4)>render_distance)
+        {
+            continue;
+        }
+
+
+        chunk_data(*c,c->mesh,this);
+        c->meshed=true;
     }
 
-    if (!chunk_ptr->uploaded) {
-      chunk_ptr->upload_mesh();
-      chunk_ptr->uploaded = true;
+
+    // MAIN THREAD ONLY
+    for(auto& [pos,c] : current_chunks)
+    {
+        if(c->meshed && !c->uploaded)
+        {
+            c->upload_mesh();
+            c->uploaded=true;
+        }
     }
-  }
 }
 
 void chunk::upload_mesh() {
@@ -247,7 +266,6 @@ void chunk::upload_mesh() {
   glEnableVertexAttribArray(3);
 
   index_count = mesh.indices.size();
-  glBindVertexArray(0);
 }
 
 void chunk::free_mesh() {
@@ -271,8 +289,16 @@ void chunk::draw() {
   glBindVertexArray(0);
 }
 void WorldManager::free_chunk(int64_t position) {
-  current_chunks.at(position)->free_mesh();
 
-  delete current_chunks.at(position);
+  chunk* target = current_chunks.at(position);
+
+
+
+  target->free_mesh();
+
+  if (target != &empty_chunk) {
+    delete current_chunks.at(position);
+  }
+
   current_chunks.erase(position);
 }

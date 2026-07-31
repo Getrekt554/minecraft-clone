@@ -10,8 +10,11 @@ target_include_directories(glad PUBLIC external/glad/include)
 
 find_package(OpenGL REQUIRED)
 
+find_package(OpenMP REQUIRED)
+
 add_executable(main src/main.cpp src/camera.cpp src/renderer.cpp src/world.cpp src/utilities.cpp src/block_handler.cpp)
 
-target_link_libraries(main PRIVATE glfw glad OpenGL::GL)
+
+target_link_libraries(main PRIVATE glfw glad OpenGL::GL OpenMP::OpenMP_CXX)
 
 target_include_directories(main PRIVATE include)

@@ -6,6 +6,7 @@
 #include "settings.hpp"
 #include <iostream>
 #include "../external/FastNoiseLite.h"
+#include <future>
 
 // chunk positions are 64 bit.
 // 27 for x
